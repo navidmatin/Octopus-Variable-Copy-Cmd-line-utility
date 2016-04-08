@@ -72,14 +72,14 @@ namespace OctopusDeployVariableCopy
                             break;
                         case ConsoleKey.N:
                             keepScope = false;
-                            break;          
+                            break;
                     }
                     Console.WriteLine("Copying....");
                     octopus.CopyVariableSet(allLibVarSets.ElementAt(option - 1).Key, newVarName, numOfCopies, keepScope);
                     Console.Clear();
                     Console.WriteLine("Copying was successful!");
                     Console.WriteLine("Press enter to copy anotehr variable, or any other key to exit!");
-                    if(Console.ReadKey().Key != ConsoleKey.Enter)
+                    if (Console.ReadKey().Key != ConsoleKey.Enter)
                     {
                         break;
                     }
@@ -99,26 +99,46 @@ namespace OctopusDeployVariableCopy
         {
             try
             {
-                string server, apiKey;
+                string server;
+                string apiKey;
                 if (args.Length == 2)
                 {
-                    server = args[0];
+                    server = MakeURL(args[0]);
                     apiKey = args[1];
                 }
                 else
                 {
                     Console.WriteLine("Please enter server address:");
-                    server = Console.ReadLine();
+                    server = MakeURL(Console.ReadLine());
                     Console.WriteLine("Please enter the api key: (http://docs.octopusdeploy.com/display/OD/How+to+create+an+API+key)");
                     apiKey = Console.ReadLine();
                 }
                 return new OctopusHandler(server, apiKey);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw new Exception($"Failed to connect to server!! Exception:{e.Message}", e);
             }
 
+        }
+        private static string MakeURL(string url)
+        {
+            Uri server;
+            if (!Uri.TryCreate(url, UriKind.Absolute, out server))
+            {
+                //If failed try to add http in front of it
+                if (!Uri.TryCreate($"http://{url}", UriKind.Absolute, out server))
+                {
+                    Console.WriteLine("Bad address!");
+                    Console.ReadKey();
+                    throw new Exception("Bad Server Address");
+                }
+                else
+                    return server.AbsoluteUri;
+            } else
+            {
+                return server.AbsoluteUri;
+            }
         }
     }
 }
